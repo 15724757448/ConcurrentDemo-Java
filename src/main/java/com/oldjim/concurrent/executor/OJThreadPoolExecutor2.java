@@ -13,7 +13,18 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 /**
  * 线程池 
- * 此版本我们简单实现了一个线程池，这个线程池可以正常使用，但是还存在许多可优化点。
+ * 此版本我们进行一波优化，主要打算解决的问题有：
+ * 			问题1：延迟初始化线程，当有请求进入时再初始化线程
+ * 			问题2：线程池作为线程容器，要对线程的创建做的更灵活一些
+ * 			问题3：增加拒绝策略，在线程池不可用时拒绝任务
+ * 			问题4：暂不解决
+ * 			问题5：完善异常处理逻辑
+ * 			问题6：增加回收策略
+ * 			问题7：暂不解决
+ * 			问题8：增加核心线程/非核心线程概念
+ * 			问题9：暂不解决
+ * 			问题10：通过线程中断解决线程调度问题
+ * 			问题11：暂不解决
  * 1.线程默认直接初始化 						浪费资源
  * 2.线程是new出来的							耦合性高
  * 3.任务队列满了之后没有拒绝策略				功能不完善
@@ -26,9 +37,15 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
  * 10.无法中断任务							功能不完善
  * 11.可监视及动态调整任务队列（如持久化队列）		新需求（ThreadPoolExecutor中不具备的功能）
  * @author oldJim
- * @version 0.1 
+ * @version 0.2 
+ * 
+ * 下面我们通过分析面临的问题来思考各个问题的解决方案
+ * 问题1的解决思路初步设想是将初始化线程的入口操作放到execute()中去，有任务进来在初始化线程
+ * 问题2的
+ * 
+ * 
  */
-public class OJThreadPoolExecutor extends AbstractExecutorService{
+public class OJThreadPoolExecutor2 extends AbstractExecutorService{
 	
 	/**
 	 * 线程池状态,初始状态为正在运行
@@ -69,10 +86,10 @@ public class OJThreadPoolExecutor extends AbstractExecutorService{
 //    private static final int TIDYING    =  2 ;
     private static final int TERMINATED =  3 ;
     
-    public OJThreadPoolExecutor(int wc){
+    public OJThreadPoolExecutor2(int wc){
     	this(wc, new ConcurrentLinkedQueue<Runnable>());
     }
-    public OJThreadPoolExecutor(int wc,ConcurrentLinkedQueue<Runnable> workQueue){
+    public OJThreadPoolExecutor2(int wc,ConcurrentLinkedQueue<Runnable> workQueue){
         if (wc <= 0 ){
         	throw new IllegalArgumentException();
         }
