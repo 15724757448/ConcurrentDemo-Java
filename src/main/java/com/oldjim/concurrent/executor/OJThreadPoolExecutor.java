@@ -12,7 +12,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 /**
- * 线程池
+ * 线程池 
  * 
  * 1.线程默认直接初始化 						浪费资源
  * 2.线程是new出来的							耦合性高
