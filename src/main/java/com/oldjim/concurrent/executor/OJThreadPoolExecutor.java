@@ -1,12 +1,14 @@
 package com.oldjim.concurrent.executor;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
@@ -26,7 +28,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
  * 10.无法中断任务							功能不完善
  * 11.可监视及动态调整任务队列（如持久化队列）		新需求（ThreadPoolExecutor中不具备的功能）
  * @author oldJim
- * @version 0.1 
+ * @version 1.0 
  */
 public class OJThreadPoolExecutor extends AbstractExecutorService{
 	
@@ -56,9 +58,13 @@ public class OJThreadPoolExecutor extends AbstractExecutorService{
 	 */
 	private WriteLock rsWriteLock = rsLock.writeLock();
 	/**
-	 * 用于管理工作者，在shutdown时有并发风险，使用CopyOnWriteArraySet
+	 * 主锁，用于workers的锁定操作
 	 */
-	private Set<Worker> workers = new CopyOnWriteArraySet<Worker>();
+	private ReentrantLock mainLock = new ReentrantLock();
+	/**
+	 * 用于管理工作者，在shutdown时有并发风险，不能使用CopyOnWriteArraySet，因为CopyOnWriteArraySet遍历时使用的是快照，并不是最新数据
+	 */
+	private Set<Worker> workers = new HashSet<Worker>();
 	/**
 	 * 线程池的状态，用于实现线程的中断、终止
 	 */
@@ -90,7 +96,7 @@ public class OJThreadPoolExecutor extends AbstractExecutorService{
      * 启动所有线程
      */
     private void startAllWorker() {
-    	for (Worker w : workers) {
+		for (Worker w : workers) {
 			w.thread.start();
 		}
 	}
@@ -153,7 +159,12 @@ public class OJThreadPoolExecutor extends AbstractExecutorService{
 					task.run();
 				}else{
 					if(!isRunning(rs)){
-						workers.remove(this);
+						mainLock.lock();
+						try {
+							workers.remove(this);
+						} finally {
+							mainLock.unlock();
+						}
 						tryTerminate();
 						return;
 					}
