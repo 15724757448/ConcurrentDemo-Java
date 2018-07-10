@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -89,7 +88,7 @@ public class OJThreadPoolExecutor2 extends AbstractExecutorService{
 	/**
 	 * 线程池线程个数
 	 */
-	private int wc ;
+	private int poolSize ;
 	/**
 	 * 任务队列,保证线程安全
 	 */
@@ -124,17 +123,17 @@ public class OJThreadPoolExecutor2 extends AbstractExecutorService{
 //    private static final int TIDYING    =  2 ;
     private static final int TERMINATED =  3 ;
     
-    public OJThreadPoolExecutor2(int wc){
-    	this(wc, new ConcurrentLinkedQueue<Runnable>());
+    public OJThreadPoolExecutor2(int poolSize){
+    	this(poolSize, new ConcurrentLinkedQueue<Runnable>());
     }
-    public OJThreadPoolExecutor2(int wc,ConcurrentLinkedQueue<Runnable> workQueue){
-        if (wc <= 0 ){
+    public OJThreadPoolExecutor2(int poolSize,ConcurrentLinkedQueue<Runnable> workQueue){
+        if (poolSize <= 0 ){
         	throw new IllegalArgumentException();
         }
         if (workQueue == null ){
         	throw new NullPointerException();
         }
-    	this.wc = wc;
+    	this.poolSize = poolSize;
     	this.workQueue = workQueue;
     	//初始化所有线程
     	initAllWorker();
@@ -153,7 +152,7 @@ public class OJThreadPoolExecutor2 extends AbstractExecutorService{
      * 初始化工作者
      */
     private void initAllWorker() {
-    	for (int i = 0; i < wc; i++) {
+    	for (int i = 0; i < poolSize; i++) {
 			addWorker();
 		}
 	}
